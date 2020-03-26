@@ -32,7 +32,7 @@ class RequestCounter(object):
             self.on_finish.callback(True)
                 
 class Protocol(LineOnlyReceiver):
-    delimiter = '\n'
+    delimiter = b'\n'
     
     def _get_id(self):
         self.request_id += 1
@@ -100,27 +100,27 @@ class Protocol(LineOnlyReceiver):
  
     def writeJsonRequest(self, method, params, worker, is_notification=False):
         request_id = None if is_notification else self._get_id() 
-        serialized = json.dumps({'id': request_id, 'method': method, 'params': params, 'jsonrpc':'2.0', 'worker': worker})
+        serialized = json.dumps({'id': request_id, 'method': method, 'params': params, 'jsonrpc':'2.0', 'worker': worker}).encode()
 
         if self.factory.debug:
-            log.debug("< %s" % serialized)
+            log.debug(b"< %b" % serialized)
 
-        self.transport_write("%s\n" % serialized)
+        self.transport_write(b"%b\n" % serialized)
         return request_id
         
     def writeJsonResponse(self, data, message_id):
         if not data:
             return
-        serialized = json.dumps({'id': message_id, 'result': data, 'error': None, 'jsonrpc':'2.0'})
+        serialized = json.dumps({'id': message_id, 'result': data, 'error': None, 'jsonrpc':'2.0'}).encode()
 
         if self.factory.debug:
-            log.debug("< %s" % serialized)
+            log.debug(b"< %b" % serialized)
 
-        self.transport_write("%s\n" % serialized)
+        self.transport_write(b"%b\n" % serialized)
 
     def writeJsonError(self, code, message, traceback, message_id):
-        serialized = json.dumps({'id': message_id, 'result': None, 'error': (code, message, traceback)})
-        self.transport_write("%s\n" % serialized)
+        serialized = json.dumps({'id': message_id, 'result': None, 'error': (code, message, traceback)}).encode()
+        self.transport_write(b"%b\n" % serialized)
 
     def writeGeneralError(self, message, code=-1):
         log.error(message)
