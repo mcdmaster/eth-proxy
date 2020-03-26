@@ -27,12 +27,12 @@ class Root(Resource):
         return resp
 
     def render_POST(self, request):
-        request.setHeader('content-type', 'application/json')
+        request.setHeader(b'content-type', b'application/json')
         data = json.loads(request.content.read())
 
         if not self.job_registry.jobs:
             log.warning('Proxy is waiting for a job...')
-            request.write(self.json_error(data.get('id', 0), "Proxy is waiting for a job...")+'\n')
+            request.write((self.json_error(data.get('id', 0), "Proxy is waiting for a job...")+'\n').encode())
             request.finish()
             return NOT_DONE_YET
 
@@ -48,9 +48,9 @@ class Root(Resource):
                 response = self.json_response(data.get('id', 0), self.job_registry.jobs.params)
         elif data['method'] == 'eth_submitWork' or data['method'] == 'eth_submitHashrate':
             if self.isWorkerID:
-                worker_name = request.uri[1:15].split("/")[0]
+                worker_name = request.uri[1:15].split(b"/")[0]
                 if not worker_name:
-                    ip_temp = request.getClientIP().split('.')
+                    ip_temp = request.getClientIP().split(b'.')
                     worker_name = str( int(ip_temp[0])*16777216 + int(ip_temp[1])*65536 + int(ip_temp[2])*256 + int(ip_temp[3]) )
             else:
                 worker_name = ''
@@ -67,7 +67,7 @@ class Root(Resource):
             response = self.json_error(data.get('id'), "Unsupported method '%s'" % data['method'])
 
         try:
-            request.write(response+'\n')
+            request.write(("%s\n" % response).encode())
             request.finish()
             return NOT_DONE_YET
         except Exception:
@@ -89,4 +89,4 @@ class Root(Resource):
         if self.job_registry.f3:
             connected = "connected" if (hasattr(self.job_registry.f3, "is_connected") and self.job_registry.f3.is_connected) else "disconnected"
             ret_text += "Failover server3 %s:%s (%s) %s<br>" % (self.job_registry.f3.main_host[0], self.job_registry.f3.main_host[1], self.job_registry.f3.remote_ip, connected)
-        return ret_text
+        return "".join(ret_text).encode()
