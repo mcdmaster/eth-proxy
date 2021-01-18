@@ -3,7 +3,7 @@
 
 import socket
 import struct
-from zope.interface import implements
+from zope.interface import implementer
 from twisted.internet import defer
 from twisted.internet.interfaces import IStreamClientEndpoint
 from twisted.internet.protocol import Protocol, ClientFactory
@@ -19,8 +19,8 @@ class SOCKSv4ClientProtocol(Protocol):
     buf = ''
 
     def SOCKSConnect(self, host, port):
-        # only socksv4a for now
-        ver = 4
+        # socksv4a and later
+        ver = 5
         cmd = 1                 # stream connection
         user = '\x00'
         dnsname = ''
@@ -77,30 +77,30 @@ class SOCKSv4ClientFactory(ClientFactory):
         return r
 
 class SOCKSWrapper(object):
-    implements(IStreamClientEndpoint)
-    factory = SOCKSv4ClientFactory
+    @implementer(IStreamClientEndpoint)
+    class StreamClientEndpoint:
 
-    def __init__(self, reactor, host, port, endpoint):
-        self._host = host
-        self._port = port
-        self._reactor = reactor
-        self._endpoint = endpoint
+        def __init__(self, reactor, host, port, endpoint):
+            self._host = host
+            self._port = port
+            self._reactor = reactor
+            self._endpoint = endpoint
 
-    def connect(self, protocolFactory):
-        """
-        Return a deferred firing when the SOCKS connection is established.
-        """
+        def connect(self, protocolFactory):
+            """
+            Return a deferred firing when the SOCKS connection is established.
+            """
 
-        try:
-            # Connect with an intermediate SOCKS factory/protocol,
-            # which then hands control to the provided protocolFactory
-            # once a SOCKS connection has been established.
-            f = self.factory()
-            f.postHandshakeEndpoint = self._endpoint
-            f.postHandshakeFactory = protocolFactory
-            f.handshakeDone = defer.Deferred()
-            wf = _WrappingFactory(f)
-            self._reactor.connectTCP(self._host, self._port, wf)
-            return f.handshakeDone
-        except: 
-            return defer.fail() 
+            try:
+                # Connect with an intermediate SOCKS factory/protocol,
+                # which then hands control to the provided protocolFactory
+                # once a SOCKS connection has been established.
+                f = self.factory()
+                f.postHandshakeEndpoint = self._endpoint
+                f.postHandshakeFactory = protocolFactory
+                f.handshakeDone = defer.Deferred()
+                wf = _WrappingFactory(f)
+                self._reactor.connectTCP(self._host, self._port, wf)
+                return f.handshakeDone
+            except: 
+                return defer.fail() 

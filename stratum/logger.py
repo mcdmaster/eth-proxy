@@ -4,7 +4,7 @@ import os
 import logging
 from twisted.python import log as twisted_log
 
-import settings
+from stratum import settings
 
 '''
 class Logger(object):

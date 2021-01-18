@@ -1,1 +1,1 @@
-from server import setup
+from stratum.server import setup

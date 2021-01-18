@@ -6,12 +6,12 @@ from twisted.protocols.basic import LineOnlyReceiver
 from twisted.internet import defer, reactor, error
 from twisted.python.failure import Failure
 
-import stats
-import custom_exceptions
-import connection_registry
-import settings
+from stratum import stats
+import stratum.custom_exceptions
+from stratum import connection_registry
+import stratum.settings
 
-import logger
+from stratum import logger
 log = logger.get_logger('protocol')
 
 class RequestCounter(object):

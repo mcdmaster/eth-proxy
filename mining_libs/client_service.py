@@ -1,11 +1,10 @@
 from twisted.internet import reactor
-
 from stratum.event_handler import GenericEventHandler
-from jobs import Job
-import version as _version
+from mining_libs.jobs import Job
 
-import stratum.logger
-log = stratum.logger.get_logger('proxy')
+import stratum.version as _version
+from stratum import logger
+log = logger.get_logger('proxy')
 
 class ClientMiningService(GenericEventHandler):
     job_registry = None # Reference to JobRegistry instance
@@ -47,8 +46,8 @@ class ClientMiningService(GenericEventHandler):
         if method == 'eth_getWork':
             '''Proxy just received information about new mining job'''
             # Broadcast to getwork clients
-            job = Job.build_from_pool(params)
-            self.job_registry.replace_job(job, connection_ref)
+            jobpool = Job.build_from_pool(params)
+            self.job_registry.replace_job(jobpool, connection_ref)
             
         else:
             '''Pool just asked us for something which we don't support...'''

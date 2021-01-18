@@ -8,6 +8,8 @@ from twisted.web.server import NOT_DONE_YET
 import stratum.logger
 log = stratum.logger.get_logger('proxy')
 
+from stratum.settings import ENABLE_WORKER_ID
+
 class Root(Resource):
     isLeaf = True
 
@@ -28,6 +30,7 @@ class Root(Resource):
 
     def render_POST(self, request):
         request.setHeader(b'content-type', b'application/json')
+        request.setHeader(b'Authorization', b'basic: %s' % ENABLE_WORKER_ID)
         data = json.loads(request.content.read())
 
         if not self.job_registry.jobs:
